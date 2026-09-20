@@ -1,0 +1,98 @@
+# IIM Ahmedabad shortlisting configuration — PGP 2027-29 batch, CAT-2026.
+#
+# All numbers, tables, weights and cutoffs used by IIMAModel live here.
+# Updating next year's policy should only ever require editing this file,
+# not iim_call_predictor/colleges/iima/model.py.
+
+college:
+  name: "IIM Ahmedabad"
+  code: "iima"
+  batch: "PGP 2027-29"
+  exam: "CAT-2026"
+
+# --- Step 1: Basic eligibility filters ---
+eligibility:
+  min_ug_pct:
+    default: 50
+    relaxed: 45
+    relaxed_categories: ["SC", "ST"]
+    relaxed_for_pwd: true
+
+# --- Step 2: Table 1 — rating bands for A (10th), B (12th), C (UG) ---
+# "upper" is an inclusive upper bound; the last band (upper: null) covers
+# "greater than the previous band's upper bound".
+rating_bands:
+  - {upper: 55,   score: 1}
+  - {upper: 60,   score: 2}
+  - {upper: 70,   score: 3}
+  - {upper: 80,   score: 5}
+  - {upper: 90,   score: 8}
+  - {upper: null, score: 10}
+
+# --- Step 2: Work-experience score D ---
+work_experience:
+  below_min_months_score: 0     # months < formula_min_months
+  formula_min_months: 12        # inclusive lower bound of the linear formula
+  formula_max_months: 36        # inclusive upper bound of the linear formula
+  formula_multiplier: 0.20
+  formula_offset: 11            # score = formula_multiplier * (months - formula_offset)
+  above_max_months_score: 5     # months > formula_max_months
+
+# --- Step 2: Gender score E ---
+gender_score:
+  male_score: 0
+  non_male_score: 3
+
+# --- Step 4: Raw composite weights ---
+composite_weights:
+  normalized_ar_weight: 0.35
+  cat_percentile_weight: 0.65
+
+# --- Step 5: Normalized Composite Score (top-1%-within-discipline) ---
+ncs:
+  top_pct: 1.0     # "top 1%"
+  min_n: 5
+  max_n: 100
+
+# --- Pool-mode: how avg_top50_AR is derived from a candidate pool ---
+pool:
+  top_n_for_avg_ar: 50
+
+# --- Table 3: recognised UG disciplines ---
+disciplines:
+  - "Fashion & Design"
+  - "Computer Science & IT"
+  - "Commerce Accounting & Finance"
+  - "Medical & Health Sciences"
+  - "Statistics & Actuarial Science"
+  - "Economics"
+  - "Agriculture & Allied Sciences"
+  - "Social Sciences"
+  - "Arts & Humanities"
+  - "Hospitality & Food Sciences"
+  - "Architecture & Planning"
+  - "Journalism & Media"
+  - "Life Sciences"
+  - "Law"
+  - "Engineering & Technology"
+  - "Mathematics"
+  - "Management"
+  - "Others"
+  - "Pure Sciences"
+  - "Professional (CA/CS/ICWA/FIAI)"
+
+# --- Step 7: Table 4 — CAT-2026 percentile cutoffs ---
+# Candidate must meet the overall percentile AND all three sectional percentiles.
+cutoffs:
+  non_pwd:
+    GENERAL: {overall: 95, sectional: 85}
+    EWS:     {overall: 95, sectional: 85}
+    NC_OBC:  {overall: 90, sectional: 80}
+    SC:      {overall: 85, sectional: 75}
+    ST:      {overall: 75, sectional: 65}
+  pwd:
+    GENERAL: {overall: 85, sectional: 75}
+    EWS:     {overall: 85, sectional: 75}
+    NC_OBC:  {overall: 80, sectional: 70}
+    SC:      {overall: 75, sectional: 65}
+    ST:      {overall: 65, sectional: 55}

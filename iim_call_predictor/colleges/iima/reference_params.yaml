@@ -1,0 +1,36 @@
+# ============================================================================
+# ASSUMPTION - NOT OFFICIAL. IIM Ahmedabad does not publish avg_top50_AR or
+# the per-discipline top-1% average raw composite scores. The values below
+# are placeholder defaults used only in "reference" mode, so that a score can
+# be produced without a candidate pool. They should be treated as rough,
+# illustrative denominators, NOT as verified historical statistics.
+#
+# For a defensible estimate, run in "pool" mode with a real (user-supplied)
+# CSV of candidates instead of relying on these numbers.
+# ============================================================================
+
+mode: reference
+
+# ASSUMPTION - average raw AR (Academic Rating, max 38) of the top 50
+# applicants in the pool. Used to normalize a candidate's raw AR.
+avg_top50_AR: 33
+
+# ASSUMPTION - average raw composite score among the top 1% of applicants,
+# per discipline. "default" is used for any discipline without its own
+# override below.
+top1pct_avg_raw_composite:
+  default: 1.0
+  # Per-discipline overrides (optional), e.g.:
+  # "Engineering & Technology": 1.05
+  # "Commerce Accounting & Finance": 0.98
+
+# ASSUMPTION - approximate, user-supplied NCS thresholds for predicting an
+# AWT/PI call, per category. IIMA does not publish these; they are rough
+# working cutoffs, not verified historical data. Same threshold is used for
+# PwD and non-PwD candidates within a category (no PwD-specific figure given).
+ncs_call_cutoff:
+  GENERAL: 0.92
+  EWS: 0.92
+  NC_OBC: 0.88
+  SC: 0.80
+  ST: 0.80
