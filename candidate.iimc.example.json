@@ -1,0 +1,17 @@
+{
+  "ug_pct": 75,
+  "category": "GENERAL",
+  "pwd": false,
+  "cat_overall_percentile": 98,
+  "cat_varc_percentile": 90,
+  "cat_dilr_percentile": 88,
+  "cat_qa_percentile": 85,
+  "cat_varc_raw_score": 30,
+  "cat_dilr_raw_score": 22,
+  "cat_qa_raw_score": 26,
+  "tenth_pct": 90,
+  "twelfth_pct": 86,
+  "gender": "Female",
+  "work_ex_months": 36,
+  "ug_discipline": "Engineering & Technology"
+}

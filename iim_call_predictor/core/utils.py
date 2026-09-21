@@ -25,6 +25,23 @@ def band_score(value: float, bands: Sequence[Dict[str, Any]]) -> float:
     raise ValueError(f"No band matched value {value!r}; check band configuration.")
 
 
+def range_band_score(value: float, bands: Sequence[Dict[str, Any]]) -> float:
+    """Look up a piecewise-constant score from ``[lower, upper)`` range bands.
+
+    Each band is ``{"lower": <inclusive lower bound or None>, "upper":
+    <exclusive upper bound or None>, "score": <value>}``. ``None`` means
+    unbounded on that side (e.g. the first band omits "lower", the last
+    band omits "upper"). Unlike :func:`band_score` (inclusive upper bound),
+    this matches tables phrased as ">= X and < Y".
+    """
+    for band in bands:
+        lower = band.get("lower")
+        upper = band.get("upper")
+        if (lower is None or value >= lower) and (upper is None or value < upper):
+            return float(band["score"])
+    raise ValueError(f"No band matched value {value!r}; check band configuration.")
+
+
 def top_n_average(values: Sequence[float], n: int) -> float:
     """Average of the top ``n`` values (or all values, if fewer than ``n`` are given)."""
     if not values:
@@ -56,12 +73,17 @@ def call_probability_tier(
     ``ScoreResult``; this function only needs the ratio between them, not
     what the metric actually is.
 
+    'low' whenever the call itself is False. Otherwise (call is True):
     'high' if the candidate clears the threshold by at least
     ``high_margin_ratio`` (default 2%), 'medium' if they clear it by less
-    than that, 'low' if the call is False or the metric/threshold is
-    unavailable.
+    than that, and 'medium' (rather than a misleading 'high' or 'low') if
+    the margin can't be computed at all — e.g. a college whose call
+    threshold hasn't been tuned yet defaults to 0, which isn't a
+    meaningful denominator for a ratio.
     """
-    if not call or metric_value is None or threshold is None or threshold == 0:
+    if not call:
         return "low"
+    if metric_value is None or threshold is None or threshold == 0:
+        return "medium"
     margin_ratio = (metric_value - threshold) / threshold
     return "high" if margin_ratio >= high_margin_ratio else "medium"

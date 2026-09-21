@@ -21,6 +21,9 @@ FULL_CANDIDATE: Dict[str, Any] = {
     "cat_dilr_percentile": 96,
     "cat_qa_percentile": 96,
     "ug_discipline": "Engineering & Technology",
+    "cat_varc_raw_score": 30,
+    "cat_dilr_raw_score": 25,
+    "cat_qa_raw_score": 28,
 }
 
 IIMM_ONLY_CANDIDATE: Dict[str, Any] = {
@@ -41,17 +44,24 @@ def test_response_shape_and_success() -> None:
     assert "eligible_colleges" in response["data"]
 
 
-def test_strong_candidate_appears_for_both_colleges_as_high_safe() -> None:
+def test_strong_candidate_appears_for_all_colleges() -> None:
     response = predict_all_colleges(FULL_CANDIDATE)
     by_name = {c["college_name"]: c for c in response["data"]["eligible_colleges"]}
 
-    assert set(by_name) == {"IIM Ahmedabad", "IIM Mumbai"}
+    assert set(by_name) == {"IIM Ahmedabad", "IIM Mumbai", "IIM Calcutta"}
     for entry in by_name.values():
-        assert entry["predicted_call_probability"] == "High"
-        assert entry["recommendation"] == "Safe"
         assert entry["previous_cutoff"] is not None
+    # All three colleges now have real, non-zero call thresholds -> a strong candidate reads High/Safe.
+    assert by_name["IIM Ahmedabad"]["predicted_call_probability"] == "High"
+    assert by_name["IIM Ahmedabad"]["recommendation"] == "Safe"
+    assert by_name["IIM Mumbai"]["predicted_call_probability"] == "High"
+    assert by_name["IIM Mumbai"]["recommendation"] == "Safe"
+    assert by_name["IIM Calcutta"]["predicted_call_probability"] == "High"
+    assert by_name["IIM Calcutta"]["recommendation"] == "Safe"
+
     assert by_name["IIM Ahmedabad"]["city"] == "Ahmedabad"
     assert by_name["IIM Mumbai"]["city"] == "Mumbai"
+    assert by_name["IIM Calcutta"]["city"] == "Kolkata"
 
 
 def test_college_missing_required_fields_is_skipped_with_warning() -> None:
@@ -59,7 +69,9 @@ def test_college_missing_required_fields_is_skipped_with_warning() -> None:
     names = {c["college_name"] for c in response["data"]["eligible_colleges"]}
 
     assert "IIM Ahmedabad" not in names
+    assert "IIM Calcutta" not in names
     assert any("iima" in w for w in response.get("warnings", []))
+    assert any("iimc" in w for w in response.get("warnings", []))
     assert "IIM Mumbai" in names
 
 

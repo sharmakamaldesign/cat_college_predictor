@@ -82,7 +82,7 @@ def predict_all_colleges(candidate_data: Dict[str, Any]) -> Dict[str, Any]:
                 "college_name": college_meta["name"],
                 "city": college_meta.get("city", ""),
                 "predicted_call_probability": _PROBABILITY_LABELS[tier],
-                "previous_cutoff": result.call_threshold,
+                # "previous_cutoff": result.call_threshold,
                 "recommendation": _RECOMMENDATION_LABELS[tier],
             }
         )

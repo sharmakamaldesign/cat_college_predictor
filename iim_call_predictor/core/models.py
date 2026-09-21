@@ -44,6 +44,10 @@ class CandidateInput(BaseModel):
     gender: Optional[Gender] = None
     ug_discipline: Optional[str] = Field(default=None, description="Candidate's primary UG discipline.")
 
+    cat_varc_raw_score: Optional[float] = Field(default=None, description="CAT VARC section raw score.")
+    cat_dilr_raw_score: Optional[float] = Field(default=None, description="CAT DILR section raw score.")
+    cat_qa_raw_score: Optional[float] = Field(default=None, description="CAT QA section raw score.")
+
 
 class ScoreResult(BaseModel):
     """Full, JSON-serializable, step-by-step breakdown of a college's score computation."""

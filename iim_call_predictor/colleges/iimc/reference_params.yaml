@@ -1,0 +1,33 @@
+# ============================================================================
+# ASSUMPTION - NOT OFFICIAL. Two gaps in IIM Calcutta's published policy are
+# filled here with clearly-flagged placeholders/estimates:
+#
+# 1. The Table 2 "CAT term" is officially (A/B) * 56, where A is the
+#    candidate's CAT-2025 Total Overall Scaled Score and B is the maximum
+#    possible such score. Neither is published, and this tool does not
+#    collect a raw scaled score from candidates. The CAT term is therefore
+#    approximated as (cat_overall_percentile / 100) * cat_score_weight —
+#    a percentile is not the same statistic as a scaled-score ratio, so
+#    treat this as a rough proxy, not the official calculation.
+#
+# 2. IIM Calcutta explicitly states the Stage II composite cut-off used to
+#    shortlist for PI/WAT is decided per-category, per-year, "at the sole
+#    discretion of the Institute" and is not published in advance.
+#    `composite_call_range` below gives an EXTERNALLY ESTIMATED [low, high]
+#    composite-score band per category for MBA 2026-28 (not published by
+#    IIM Calcutta). The midpoint of each range is used as the single
+#    go/no-go threshold. No estimate has been supplied for PwD candidates
+#    yet, so they fall back to `composite_call_cutoff_pwd_fallback` (0, i.e.
+#    no additional bar beyond Stage I) until a real figure is known.
+# ============================================================================
+
+mode: reference
+
+composite_call_range:
+  GENERAL: {low: 50, high: 56}
+  EWS:     {low: 47, high: 50}
+  NC_OBC:  {low: 43, high: 49}
+  SC:      {low: 38, high: 43}
+  ST:      {low: 33, high: 36}
+
+composite_call_cutoff_pwd_fallback: 0

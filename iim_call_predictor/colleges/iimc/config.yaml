@@ -1,0 +1,81 @@
+# IIM Calcutta admission-policy configuration — MBA Batch 2026-28, CAT-2025.
+#
+# Scope note: this predictor only checks eligibility and predicts a Stage II
+# PI/WAT (Personal Interview + Writing Ability Test) CALL. IIM Calcutta's
+# Table 4 (final-selection weights: PI, WAT, academic diversity, work
+# experience) and Table 5 (academic diversity categories) apply only to
+# Stage III, AFTER the PI/WAT — those are out of scope here and are not
+# implemented.
+#
+# All numbers below are taken from IIM Calcutta's published Admission Policy
+# for Batch 2026-28 (Tables 1-3 and the eligibility section).
+
+college:
+  name: "IIM Calcutta"
+  code: "iimc"
+  city: "Kolkata"
+  batch: "MBA 2026-28"
+  exam: "CAT-2025"
+
+# --- Eligibility: bachelor's degree with minimum marks ---
+eligibility:
+  min_ug_pct:
+    default: 50
+    relaxed: 45
+    relaxed_categories: ["SC", "ST"]
+    relaxed_for_pwd: true
+
+# "GENERAL" here represents the policy's "OPEN" category (no separate
+# reservation). EWS/NC_OBC/SC/ST match the policy's category names directly.
+categories: ["GENERAL", "EWS", "NC_OBC", "SC", "ST"]
+
+# --- Stage I: Table 1 — minimum CAT-2025 percentile requirements (official) ---
+# Candidate must meet Overall AND all three sectional (VARC, DILR, QA)
+# percentiles, AND (per the policy text) secure a non-negative raw score in
+# every CAT-2025 section, to be considered for Stage II. A PwD candidate
+# uses the PWD row regardless of their reservation category (per the
+# policy's own Table 1, which lists PwD as a distinct row).
+#
+# The policy explicitly states: "the actual section-wise and overall
+# percentile cut-offs may be much higher than the above-mentioned minimum
+# percentiles as it will depend upon the number of candidates to be called
+# for personal interview (PI) in each category." I.e. these are necessary
+# but not sufficient for an actual PI/WAT call — see reference_params.yaml.
+stage1_cutoffs:
+  GENERAL: {varc: 80, dilr: 80, qa: 75, overall: 85}
+  EWS:     {varc: 70, dilr: 65, qa: 65, overall: 75}
+  NC_OBC:  {varc: 70, dilr: 65, qa: 65, overall: 75}
+  SC:      {varc: 65, dilr: 60, qa: 60, overall: 70}
+  ST:      {varc: 55, dilr: 55, qa: 55, overall: 65}
+  PWD:     {varc: 45, dilr: 45, qa: 45, overall: 55}
+
+# --- Stage II: Table 2 — composite score for PI/WAT shortlisting (official) ---
+# Composite = (CAT term) + class10_points + class12_points + gender_points.
+# CAT term = (candidate's CAT-2025 overall scaled score / max possible
+# scaled score) * cat_score_weight. IIM Calcutta does not publish either the
+# candidate's own scaled score in a form this tool collects, or the max
+# possible scaled score, so the CAT term is approximated using
+# (cat_overall_percentile / 100) * cat_score_weight — see reference_params.yaml
+# for the ASSUMPTION this introduces.
+composite_weights:
+  cat_score_weight: 56
+  gender_diversity_points: 4   # awarded to Female/transgender candidates only (Table 2)
+
+# --- Table 3: Class 10 / Class 12 percentage-to-points bands (official) ---
+# "lower" inclusive, "upper" exclusive (i.e. ">= lower and < upper"), per the
+# policy's own phrasing; the top band's "upper" is omitted (">= lower").
+class10_bands:
+  - {upper: 60,             score: 0}
+  - {lower: 60, upper: 65,  score: 2}
+  - {lower: 65, upper: 70,  score: 4}
+  - {lower: 70, upper: 75,  score: 6}
+  - {lower: 75, upper: 80,  score: 8}
+  - {lower: 80,             score: 10}
+
+class12_bands:
+  - {upper: 60,             score: 0}
+  - {lower: 60, upper: 65,  score: 3}
+  - {lower: 65, upper: 70,  score: 6}
+  - {lower: 70, upper: 75,  score: 9}
+  - {lower: 75, upper: 80,  score: 12}
+  - {lower: 80,             score: 15}
