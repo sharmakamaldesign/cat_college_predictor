@@ -1,0 +1,15 @@
+FROM public.ecr.aws/lambda/python:3.10
+
+# Upgrade pip first
+ENV SECRET_KEY=psk_live_jAGSMi4yf19iJc1i3YRxHXv6iqFSWblB
+RUN python -m pip install --upgrade pip
+
+COPY requirements.txt .
+
+# Force binary wheels only (no compilation)
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY iim_call_predictor/ ./iim_call_predictor/
+# COPY data/ ./data/
+
+CMD ["iim_call_predictor.lambda_handler.lambda_handler"]

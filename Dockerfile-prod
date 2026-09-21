@@ -1,0 +1,15 @@
+FROM public.ecr.aws/lambda/python:3.10
+
+# Upgrade pip first
+ENV SECRET_KEY=psk_live_NiWkzECqoTznpo9764edWfll1Sg1ErwDx
+RUN python -m pip install --upgrade pip
+
+COPY requirements.txt .
+
+# Force binary wheels only (no compilation)
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY data/ ./data/
+
+CMD ["src.cat_rank_predictor.lambda_handler.lambda_handler"]

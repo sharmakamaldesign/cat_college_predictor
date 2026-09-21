@@ -1,0 +1,7 @@
+{
+  "headers": {
+    "client-api-key": "YOUR_SECRET_KEY",
+    "Authorization": "Bearer YOUR_AUTH_TOKEN"
+  },
+  "body": "{\"tenth_pct\": 92, \"twelfth_pct\": 88, \"ug_pct\": 75, \"work_ex_months\": 24, \"gender\": \"Female\", \"category\": \"GENERAL\", \"pwd\": false, \"cat_overall_percentile\": 99.5, \"cat_varc_percentile\": 96, \"cat_dilr_percentile\": 96, \"cat_qa_percentile\": 96, \"ug_discipline\": \"Engineering & Technology\", \"cat_varc_raw_score\": 30, \"cat_dilr_raw_score\": 25, \"cat_qa_raw_score\": 28}"
+}

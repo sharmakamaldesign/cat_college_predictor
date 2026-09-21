@@ -50,7 +50,7 @@ def test_strong_candidate_appears_for_all_colleges() -> None:
 
     assert set(by_name) == {"IIM Ahmedabad", "IIM Mumbai", "IIM Calcutta"}
     for entry in by_name.values():
-        assert entry["previous_cutoff"] is not None
+        assert set(entry) == {"college_name", "city", "predicted_call_probability", "recommendation"}
     # All three colleges now have real, non-zero call thresholds -> a strong candidate reads High/Safe.
     assert by_name["IIM Ahmedabad"]["predicted_call_probability"] == "High"
     assert by_name["IIM Ahmedabad"]["recommendation"] == "Safe"

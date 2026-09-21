@@ -40,9 +40,9 @@ predict_all_colleges({
   "message": "Prediction generated successfully.",
   "data": {
     "eligible_colleges": [
-      {"college_name": "IIM Ahmedabad", "city": "Ahmedabad", "predicted_call_probability": "High", "previous_cutoff": 0.92, "recommendation": "Safe"},
-      {"college_name": "IIM Calcutta", "city": "Kolkata", "predicted_call_probability": "High", "previous_cutoff": 53.0, "recommendation": "Safe"},
-      {"college_name": "IIM Mumbai", "city": "Mumbai", "predicted_call_probability": "High", "previous_cutoff": 97.5, "recommendation": "Safe"}
+      {"college_name": "IIM Ahmedabad", "city": "Ahmedabad", "predicted_call_probability": "High", "recommendation": "Safe"},
+      {"college_name": "IIM Calcutta", "city": "Kolkata", "predicted_call_probability": "High", "recommendation": "Safe"},
+      {"college_name": "IIM Mumbai", "city": "Mumbai", "predicted_call_probability": "High", "recommendation": "Safe"}
     ]
   }
 }
@@ -50,8 +50,7 @@ predict_all_colleges({
 
 Notes on this aggregated view:
 - A college is **left out of `eligible_colleges`** if the candidate doesn't meet its basic eligibility (e.g. UG% too low) — there's no point predicting a call for a college they can't apply to. A college whose model needs fields the payload doesn't supply (e.g. calling IIMM-only fields against IIMA, or omitting IIMC's CAT raw scores) is **skipped and noted under a top-level `warnings` list**, rather than erroring out.
-- `previous_cutoff` is each college's own call threshold for the candidate's category, in whatever unit that college uses internally (IIMA: NCS, ~0-1 scale; IIMM: CAT overall percentile; IIMC: Stage II composite score, ~0-85 scale) — so it is **not directly comparable between colleges**.
-- `predicted_call_probability` / `recommendation` (`High`/`Medium`/`Low` and `Safe`/`Moderate`/`Risky`) are a **deterministic bucketing** of each college's own call decision and how comfortably the candidate clears its threshold (≥2% margin → High/Safe, positive but <2% → Medium/Moderate, below threshold → Low/Risky). A call of `true` against a threshold that hasn't been tuned yet (e.g. a PwD candidate at IIMC, whose `composite_call_cutoff` fallback is 0) also reads `Medium`/`Moderate`, since no real margin can be assessed — never a probability/ML model, just a labeled version of the same fixed-threshold logic.
+- `predicted_call_probability` / `recommendation` (`High`/`Medium`/`Low` and `Safe`/`Moderate`/`Risky`) are a **deterministic bucketing** of each college's own call decision and how comfortably the candidate clears its threshold internally (≥2% margin → High/Safe, positive but <2% → Medium/Moderate, below threshold → Low/Risky; the raw threshold itself isn't exposed in the response, since it's on a different scale per college — IIMA: NCS ~0-1, IIMM: CAT overall percentile, IIMC: Stage II composite ~0-85 — and so isn't meaningful to compare across colleges). A call of `true` against a threshold that hasn't been tuned yet (e.g. a PwD candidate at IIMC, whose `composite_call_cutoff` fallback is 0) also reads `Medium`/`Moderate`, since no real margin can be assessed — never a probability/ML model, just a labeled version of the same fixed-threshold logic.
 - On invalid candidate input, the response is `{"success": false, "message": "...", "data": null}` instead.
 
 Via the CLI (drop `--college` to check every college at once):

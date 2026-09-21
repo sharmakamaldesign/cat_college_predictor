@@ -32,7 +32,6 @@ def predict_all_colleges(candidate_data: Dict[str, Any]) -> Dict[str, Any]:
                     "college_name": str,
                     "city": str,
                     "predicted_call_probability": "High" | "Medium" | "Low",
-                    "previous_cutoff": float | None,
                     "recommendation": "Safe" | "Moderate" | "Risky",
                 },
                 ...
