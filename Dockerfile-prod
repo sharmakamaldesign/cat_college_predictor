@@ -9,7 +9,7 @@ COPY requirements.txt .
 # Force binary wheels only (no compilation)
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/ ./src/
-COPY data/ ./data/
+COPY iim_call_predictor/ ./iim_call_predictor/
+# COPY data/ ./data/
 
-CMD ["src.cat_rank_predictor.lambda_handler.lambda_handler"]
+CMD ["iim_call_predictor.lambda_handler.lambda_handler"]
