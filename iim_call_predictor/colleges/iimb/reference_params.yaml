@@ -1,0 +1,34 @@
+# ============================================================================
+# ASSUMPTION - NOT OFFICIAL. Two gaps in IIM Bangalore's published Admission
+# Procedure are filled here with clearly-flagged placeholders:
+#
+# 1. The official pre-PI formula standardizes every scored component
+#    (CAT sections, 10th, 12th, Bachelor's/professional-course) against a
+#    population mean and standard deviation that IIM Bangalore does not
+#    publish. Each such component is therefore approximated by linearly
+#    scaling the candidate's raw percentage/percentile onto that
+#    component's weight (val/100 * weight) instead of the official z-score
+#    formula. Work experience is NOT approximated — it uses the exact
+#    published formula (weight * months/36, capped at the weight for
+#    months >= 36).
+#
+# 2. IIM Bangalore states "a certain number of candidates from each
+#    category are selected for [Stage II]" based on the pre-PI score, but
+#    does not publish the composite cut-off used. `pre_pi_call_cutoff`
+#    defaults to 0 for every category below, i.e. NO additional bar beyond
+#    Stage I is applied by default — call == "meets Stage I (incl. strictly
+#    positive section raw scores)". This almost certainly OVER-predicts
+#    calls. Replace these with real historical/estimated pre-PI cut-offs
+#    once you have them (the same way IIMM's and IIMC's estimates were
+#    supplied).
+# ============================================================================
+
+mode: reference
+
+pre_pi_call_cutoff:
+  GENERAL: 52.5
+  EWS: 42.0
+  NC_OBC: 43.5
+  SC: 37.5
+  ST: 28.5
+  PWD: 30.0  

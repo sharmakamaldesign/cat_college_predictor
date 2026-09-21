@@ -1,0 +1,72 @@
+# IIM Bangalore admission-procedure configuration — PGP MBA 2026-28, CAT-2025.
+#
+# Scope note: this predictor only checks eligibility and predicts the Stage I
+# -> Stage II CALL (i.e. whether the candidate is invited to the Personal
+# Interview + Writing Ability Test), using the official "pre-PI score".
+# IIM Bangalore's post-PI composite (PI=40, WAT=10, CAT=25, board/work-ex
+# re-weighted) determines FINAL SELECTION, after the PI/WAT — out of scope
+# here, and not implemented. Also out of scope: the COVID-era "missing
+# 10th/12th score" re-weighting rule, and the "automatic top-10 qualifier"
+# rule (both total-CAT-score and disciplinewise), since both require
+# whole-applicant-pool context this single-candidate tool doesn't have.
+#
+# This document is explicitly for the 2026-28 admissions cycle; the user has
+# confirmed it should be treated as applicable to 2027 (CAT-2026) as well,
+# per IIM Bangalore's own disclaimer that it reserves the right to change
+# the process for future cycles.
+
+college:
+  name: "IIM Bangalore"
+  code: "iimb"
+  city: "Bangalore"
+  batch: "PGP 2026-28"
+  exam: "CAT-2025"
+
+# --- Eligibility: bachelor's degree (or completed CA/CS/ICWA/FIAI) with
+# minimum marks ---
+eligibility:
+  min_ug_pct:
+    default: 50
+    relaxed: 45
+    relaxed_categories: ["SC", "ST"]
+    relaxed_for_pwd: true
+
+categories: ["GENERAL", "EWS", "NC_OBC", "SC", "ST"]
+
+# --- Stage I: Annexure I Table 1 — minimum CAT percentile requirements
+# (official; published for CAT-2024/batch 2025-27, explicitly noted as the
+# figures used, higher actual interview cut-offs applied). Candidate must
+# meet Overall AND all three sectional percentiles, AND have a STRICTLY
+# POSITIVE (> 0, not merely non-negative) raw score in every CAT section.
+# A PwD candidate uses the PWD row regardless of their reservation category.
+stage1_cutoffs:
+  GENERAL: {varc: 80, dilr: 75, qa: 75, overall: 85}
+  NC_OBC:  {varc: 70, dilr: 65, qa: 65, overall: 75}
+  EWS:     {varc: 70, dilr: 65, qa: 65, overall: 75}
+  SC:      {varc: 65, dilr: 60, qa: 60, overall: 70}
+  ST:      {varc: 55, dilr: 55, qa: 55, overall: 65}
+  PWD:     {varc: 50, dilr: 50, qa: 50, overall: 60}
+
+# --- Pre-PI score weights (official) — this composite is what determines
+# the Stage II (PI/WAT) call, out of a maximum of 100.
+# The official formula standardizes each component via a population
+# z-score: max(0, min(wt, wt/2 + ((val-mean)/sd) * wt/6)). IIM Bangalore
+# does not publish per-component population mean/sd, and this tool does
+# not collect a candidate pool by default, so each z-scored component
+# below is approximated by linearly scaling the raw percentage/percentile
+# onto its weight instead — see reference_params.yaml and the warnings
+# this predictor emits.
+composite_weights:
+  varc_weight: 19
+  dilr_weight: 21
+  qa_weight: 15
+  tenth_weight: 10
+  twelfth_weight: 10
+  bachelor_weight: 10
+  work_experience_weight: 10
+  gender_diversity_points: 5   # awarded to female/transgender candidates only (assumed, consistent with other IIMs; not explicitly detailed in this policy)
+
+# Work-experience score is NOT approximated — it's an exact, published
+# formula: weight * months/36 for 0 < months < 36, weight for months >= 36.
+work_experience:
+  full_credit_months: 36
