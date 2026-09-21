@@ -40,3 +40,28 @@ def clamped_top_pct_count(total_count: int, pct: float, min_n: int, max_n: int) 
         raise ValueError("total_count must be positive.")
     raw_n = math.ceil(total_count * pct / 100.0)
     return int(clamp(raw_n, min_n, max_n))
+
+
+def call_probability_tier(
+    call: bool,
+    metric_value: Optional[float],
+    threshold: Optional[float],
+    high_margin_ratio: float = 0.02,
+) -> str:
+    """Bucket a call decision into 'high'/'medium'/'low' confidence.
+
+    Works generically across colleges: each college reports whatever metric
+    it compares to its own call threshold (e.g. NCS for IIMA, CAT overall
+    percentile for IIMM) via ``call_metric_value``/``call_threshold`` on
+    ``ScoreResult``; this function only needs the ratio between them, not
+    what the metric actually is.
+
+    'high' if the candidate clears the threshold by at least
+    ``high_margin_ratio`` (default 2%), 'medium' if they clear it by less
+    than that, 'low' if the call is False or the metric/threshold is
+    unavailable.
+    """
+    if not call or metric_value is None or threshold is None or threshold == 0:
+        return "low"
+    margin_ratio = (metric_value - threshold) / threshold
+    return "high" if margin_ratio >= high_margin_ratio else "medium"

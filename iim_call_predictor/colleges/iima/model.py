@@ -203,24 +203,26 @@ class IIMAModel(CollegeModel):
         cutoff_passed: bool,
         ncs: float,
         params: Dict[str, Any],
-    ) -> Tuple[bool, List[str]]:
+    ) -> Tuple[bool, List[str], Optional[float]]:
         """Predict an AWT/PI call: eligible, CAT cutoffs met, and NCS at/above the
-        category's approximate NCS call cutoff (see reference_params.yaml)."""
+        category's approximate NCS call cutoff (see reference_params.yaml).
+
+        Returns (call, reasons, threshold_used)."""
         reasons: List[str] = []
 
         if not eligible:
             reasons.append("Candidate is not eligible (see eligibility_reasons); no call predicted.")
-            return False, reasons
+            return False, reasons, None
         if not cutoff_passed:
             reasons.append("Candidate did not meet CAT-2026 cutoffs (see cutoff_reasons); no call predicted.")
-            return False, reasons
+            return False, reasons, None
 
         threshold = params.get("ncs_call_cutoff", {}).get(candidate.category)
         if threshold is None:
             reasons.append(
                 f"No NCS call cutoff configured for category '{candidate.category}'; call cannot be predicted."
             )
-            return False, reasons
+            return False, reasons, None
 
         call = ncs >= threshold
         if call:
@@ -231,7 +233,7 @@ class IIMAModel(CollegeModel):
             reasons.append(
                 f"NCS {ncs:.6f} is below the approximate call cutoff of {threshold} for category {candidate.category}."
             )
-        return call, reasons
+        return call, reasons, threshold
 
     # ------------------------------------------------------------------
     # Steps 3-6: score computation
@@ -276,7 +278,7 @@ class IIMAModel(CollegeModel):
 
         eligible, eligibility_reasons = self.check_basic_eligibility(candidate)
         cutoff_passed, cutoff_reasons = self.check_cutoffs(candidate)
-        call, call_reasons = self._predict_call(candidate, eligible, cutoff_passed, ncs, params)
+        call, call_reasons, call_threshold = self._predict_call(candidate, eligible, cutoff_passed, ncs, params)
 
         warnings: List[str] = [
             f"NCS uses assumed/derived denominators (avg_top50_AR={avg_top50_AR}, "
@@ -310,6 +312,9 @@ class IIMAModel(CollegeModel):
             ncs=ncs,
             call=call,
             call_reasons=call_reasons,
+            call_metric="NCS",
+            call_metric_value=ncs,
+            call_threshold=call_threshold,
             discipline_used=discipline,
             params_used=copy.deepcopy(params),
             mode=mode,

@@ -67,6 +67,16 @@ class ScoreResult(BaseModel):
     call: bool = Field(..., description="Whether the candidate is predicted to receive a shortlisting call.")
     call_reasons: List[str] = Field(default_factory=list)
 
+    call_metric: Optional[str] = Field(
+        default=None, description="Label of the metric compared to call_threshold, e.g. 'NCS' or 'CAT Overall Percentile'."
+    )
+    call_metric_value: Optional[float] = Field(
+        default=None, description="The candidate's value of call_metric."
+    )
+    call_threshold: Optional[float] = Field(
+        default=None, description="The call_metric threshold used for the candidate's category."
+    )
+
     params_used: Dict[str, Any] = Field(default_factory=dict)
     mode: str = Field(..., description="'reference' or 'pool'.")
     warnings: List[str] = Field(default_factory=list)

@@ -104,17 +104,18 @@ class IIMMModel(CollegeModel):
     # ------------------------------------------------------------------
     def _predict_call(
         self, candidate: CandidateInput, eligible: bool, cutoff_passed: bool, params: Dict[str, Any]
-    ) -> Tuple[bool, List[str]]:
+    ) -> Tuple[bool, List[str], Optional[float]]:
+        """Returns (call, reasons, overall_percentile_threshold_used)."""
         reasons: List[str] = []
 
         if not eligible:
             reasons.append("Candidate is not eligible (see eligibility_reasons); no call predicted.")
-            return False, reasons
+            return False, reasons, None
         if not cutoff_passed:
             reasons.append(
                 "Candidate did not meet Stage I minimum CAT-2025 cutoffs (see cutoff_reasons); no call predicted."
             )
-            return False, reasons
+            return False, reasons, None
 
         if candidate.pwd:
             # No updated overall-percentile estimate has been supplied for PwD
@@ -135,7 +136,7 @@ class IIMMModel(CollegeModel):
                     reasons.append(f"{label} percentile {actual} meets the estimated call cutoff of {required}.")
             if call:
                 reasons.append("Candidate meets all estimated Stage II call-cutoff percentiles (PwD).")
-            return call, reasons
+            return call, reasons, row["overall"]
 
         range_row = params["call_overall_percentile_range"][candidate.category]
         threshold = (range_row["low"] + range_row["high"]) / 2
@@ -151,7 +152,7 @@ class IIMMModel(CollegeModel):
                 f"Overall percentile {actual} is below the estimated call cutoff of {threshold} for category "
                 f"{candidate.category} (estimated range: {range_row['low']}-{range_row['high']})."
             )
-        return call, reasons
+        return call, reasons, threshold
 
     # ------------------------------------------------------------------
     # compute_score: eligibility + cutoffs + call only (no APWE/AR score)
@@ -168,7 +169,7 @@ class IIMMModel(CollegeModel):
 
         eligible, eligibility_reasons = self.check_basic_eligibility(candidate)
         cutoff_passed, cutoff_reasons = self.check_cutoffs(candidate)
-        call, call_reasons = self._predict_call(candidate, eligible, cutoff_passed, params)
+        call, call_reasons, call_threshold = self._predict_call(candidate, eligible, cutoff_passed, params)
 
         warnings: List[str] = [
             "IIM Mumbai's Academic Performance & Work Experience (APWE) score and Personal Interview score "
@@ -195,6 +196,9 @@ class IIMMModel(CollegeModel):
             cutoff_reasons=cutoff_reasons,
             call=call,
             call_reasons=call_reasons,
+            call_metric="CAT Overall Percentile",
+            call_metric_value=candidate.cat_overall_percentile,
+            call_threshold=call_threshold,
             params_used=params,
             mode=mode,
             warnings=warnings,

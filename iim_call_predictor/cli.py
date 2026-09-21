@@ -1,6 +1,8 @@
 """Command-line entry point.
 
 Usage:
+    python -m iim_call_predictor.cli --input candidate.json
+        (checks every registered college at once; see predictor.predict_all_colleges)
     python -m iim_call_predictor.cli --college iima --input candidate.json
     python -m iim_call_predictor.cli --college iima --input candidate.json --json
     python -m iim_call_predictor.cli --college iima --input candidate.json --mode pool --pool-csv pool.csv
@@ -18,6 +20,7 @@ try:
     from . import colleges  # noqa: F401  (import triggers registration of all colleges)
     from .core.models import CandidateInput
     from .core.registry import get_college, list_colleges
+    from .predictor import predict_all_colleges
 except ImportError:
     # Allow running as a plain script (e.g. `python iim_call_predictor/cli.py ...`)
     # in addition to `python -m iim_call_predictor.cli ...`.
@@ -25,17 +28,25 @@ except ImportError:
     from iim_call_predictor import colleges  # noqa: F401
     from iim_call_predictor.core.models import CandidateInput
     from iim_call_predictor.core.registry import get_college, list_colleges
+    from iim_call_predictor.predictor import predict_all_colleges
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Compute an IIM shortlisting score for a candidate.")
-    parser.add_argument("--college", required=True, help=f"College code. Available: {', '.join(list_colleges())}")
+    parser.add_argument(
+        "--college",
+        required=False,
+        help=(
+            f"College code. Available: {', '.join(list_colleges())}. "
+            "Omit to check every registered college at once."
+        ),
+    )
     parser.add_argument("--input", required=True, type=Path, help="Path to a candidate JSON file.")
     parser.add_argument(
         "--mode",
         choices=["reference", "pool"],
         default="reference",
-        help="'reference' uses static assumed parameters; 'pool' derives them from --pool-csv.",
+        help="'reference' uses static assumed parameters; 'pool' derives them from --pool-csv. Ignored without --college.",
     )
     parser.add_argument("--pool-csv", type=Path, help="Path to a candidate-pool CSV, required when --mode pool.")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON instead of a text breakdown.")
@@ -45,9 +56,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
 
-    college = get_college(args.college)
-
     candidate_data: Dict[str, Any] = json.loads(args.input.read_text(encoding="utf-8"))
+
+    if args.college is None:
+        response = predict_all_colleges(candidate_data)
+        print(json.dumps(response, indent=2))
+        return 0 if response["success"] else 1
+
+    college = get_college(args.college)
     candidate = CandidateInput(**candidate_data)
 
     if args.mode == "pool":

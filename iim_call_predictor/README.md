@@ -13,6 +13,48 @@ always a **fixed-threshold rule**, never a probability/ML prediction. The
 architecture is plug-in based so more IIMs can be added later without
 touching shared code.
 
+## Checking every college at once
+
+`iim_call_predictor.predictor.predict_all_colleges(candidate_data: dict) -> dict`
+runs every registered college's own eligibility/cutoff/call check for one
+candidate and returns a single aggregated response:
+
+```python
+from iim_call_predictor.predictor import predict_all_colleges
+
+predict_all_colleges({
+    "tenth_pct": 92, "twelfth_pct": 88, "ug_pct": 75, "work_ex_months": 24,
+    "gender": "Female", "category": "GENERAL", "cat_overall_percentile": 99.5,
+    "cat_varc_percentile": 96, "cat_dilr_percentile": 96, "cat_qa_percentile": 96,
+    "ug_discipline": "Engineering & Technology",
+})
+```
+
+```json
+{
+  "success": true,
+  "message": "Prediction generated successfully.",
+  "data": {
+    "eligible_colleges": [
+      {"college_name": "IIM Ahmedabad", "city": "Ahmedabad", "predicted_call_probability": "High", "previous_cutoff": 0.92, "recommendation": "Safe"},
+      {"college_name": "IIM Mumbai", "city": "Mumbai", "predicted_call_probability": "High", "previous_cutoff": 97.5, "recommendation": "Safe"}
+    ]
+  }
+}
+```
+
+Notes on this aggregated view:
+- A college is **left out of `eligible_colleges`** if the candidate doesn't meet its basic eligibility (e.g. UG% too low) — there's no point predicting a call for a college they can't apply to. A college whose model needs fields the payload doesn't supply (e.g. calling IIMM-only fields against IIMA) is **skipped and noted under a top-level `warnings` list**, rather than erroring out.
+- `previous_cutoff` is each college's own call threshold for the candidate's category, in whatever unit that college uses internally (IIMA: NCS, ~0-1 scale; IIMM: CAT overall percentile, 0-100 scale) — so it is **not directly comparable between colleges**.
+- `predicted_call_probability` / `recommendation` (`High`/`Medium`/`Low` and `Safe`/`Moderate`/`Risky`) are a **deterministic bucketing** of each college's own call decision and how comfortably the candidate clears its threshold (≥2% margin → High/Safe, positive but <2% → Medium/Moderate, below threshold → Low/Risky) — still not a probability/ML model, just a labeled version of the same fixed-threshold logic.
+- On invalid candidate input, the response is `{"success": false, "message": "...", "data": null}` instead.
+
+Via the CLI (drop `--college` to check every college at once):
+
+```bash
+python -m iim_call_predictor.cli --input candidate.example.json
+```
+
 ## IIM Ahmedabad
 
 IIMA does not publish two numbers its formula needs to normalize scores:
@@ -160,10 +202,12 @@ iim_call_predictor/
       config.yaml            # official IIMM eligibility + Stage I cutoff table
       reference_params.yaml  # ASSUMPTION Stage II call-cutoff parameters
       model.py                # IIMMModel(CollegeModel)
+  predictor.py    # predict_all_colleges(candidate_data) — checks every registered college at once
   cli.py
   tests/
     test_iima.py
     test_iimm.py
+    test_predictor.py
 ```
 
 `core` never imports from a specific college, and no college-specific number
@@ -192,3 +236,6 @@ raises a clear error if a field *it* actually needs is missing.
 A college that needs fields beyond the shared `CandidateInput` schema can
 define its own small pydantic model for those extra, college-specific
 inputs, without affecting other colleges.
+
+# All college test script
+python3 -m iim_call_predictor.cli --input candidate.example.json

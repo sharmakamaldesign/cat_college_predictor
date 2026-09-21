@@ -282,10 +282,13 @@ def test_predict_call_at_and_below_threshold(model: IIMAModel, category: str, th
     candidate = CandidateInput(**base_candidate_kwargs(category=category))
     params = model.load_reference_params()
 
-    call, reasons = model._predict_call(candidate, eligible=True, cutoff_passed=True, ncs=threshold, params=params)
+    call, reasons, used_threshold = model._predict_call(
+        candidate, eligible=True, cutoff_passed=True, ncs=threshold, params=params
+    )
     assert call is True, reasons
+    assert used_threshold == pytest.approx(threshold)
 
-    call, reasons = model._predict_call(
+    call, reasons, _ = model._predict_call(
         candidate, eligible=True, cutoff_passed=True, ncs=threshold - 0.001, params=params
     )
     assert call is False, reasons
@@ -294,15 +297,21 @@ def test_predict_call_at_and_below_threshold(model: IIMAModel, category: str, th
 def test_predict_call_false_when_not_eligible(model: IIMAModel) -> None:
     candidate = CandidateInput(**base_candidate_kwargs())
     params = model.load_reference_params()
-    call, reasons = model._predict_call(candidate, eligible=False, cutoff_passed=True, ncs=0.99, params=params)
+    call, reasons, threshold = model._predict_call(
+        candidate, eligible=False, cutoff_passed=True, ncs=0.99, params=params
+    )
     assert call is False, reasons
+    assert threshold is None
 
 
 def test_predict_call_false_when_cutoff_not_met(model: IIMAModel) -> None:
     candidate = CandidateInput(**base_candidate_kwargs())
     params = model.load_reference_params()
-    call, reasons = model._predict_call(candidate, eligible=True, cutoff_passed=False, ncs=0.99, params=params)
+    call, reasons, threshold = model._predict_call(
+        candidate, eligible=True, cutoff_passed=False, ncs=0.99, params=params
+    )
     assert call is False, reasons
+    assert threshold is None
 
 
 # ---------------------------------------------------------------------------

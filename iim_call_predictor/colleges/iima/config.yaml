@@ -7,6 +7,7 @@
 college:
   name: "IIM Ahmedabad"
   code: "iima"
+  city: "Ahmedabad"
   batch: "PGP 2027-29"
   exam: "CAT-2026"
 

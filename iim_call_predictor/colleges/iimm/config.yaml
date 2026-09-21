@@ -12,6 +12,7 @@
 college:
   name: "IIM Mumbai"
   code: "iimm"
+  city: "Mumbai"
   batch: "MBA 2026-2028"
   exam: "CAT-2025"
 
