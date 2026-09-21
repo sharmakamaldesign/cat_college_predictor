@@ -48,25 +48,19 @@ def test_strong_candidate_appears_for_all_colleges() -> None:
     response = predict_all_colleges(FULL_CANDIDATE)
     by_name = {c["college_name"]: c for c in response["data"]["eligible_colleges"]}
 
-    assert set(by_name) == {"IIM Ahmedabad", "IIM Mumbai", "IIM Calcutta", "IIM Bangalore"}
+    assert set(by_name) == {"IIM Ahmedabad", "IIM Mumbai", "IIM Calcutta", "IIM Bangalore", "IIM Lucknow"}
     for entry in by_name.values():
         assert set(entry) == {"college_name", "city", "predicted_call_probability", "recommendation"}
-    # IIMA and IIMM have real, non-zero call thresholds -> a strong candidate reads High/Safe.
-    assert by_name["IIM Ahmedabad"]["predicted_call_probability"] == "High"
-    assert by_name["IIM Ahmedabad"]["recommendation"] == "Safe"
-    assert by_name["IIM Mumbai"]["predicted_call_probability"] == "High"
-    assert by_name["IIM Mumbai"]["recommendation"] == "Safe"
-    assert by_name["IIM Calcutta"]["predicted_call_probability"] == "High"
-    assert by_name["IIM Calcutta"]["recommendation"] == "Safe"
-    # IIMB's call cutoff still defaults to 0 (no real figures supplied yet), so margin
-    # can't be assessed -> Medium/Moderate, even though the call itself is True.
-    assert by_name["IIM Bangalore"]["predicted_call_probability"] == "Medium"
-    assert by_name["IIM Bangalore"]["recommendation"] == "Moderate"
+    # All five colleges now have real, non-zero call thresholds -> a strong candidate reads High/Safe.
+    for name in by_name:
+        assert by_name[name]["predicted_call_probability"] == "High", name
+        assert by_name[name]["recommendation"] == "Safe", name
 
     assert by_name["IIM Ahmedabad"]["city"] == "Ahmedabad"
     assert by_name["IIM Mumbai"]["city"] == "Mumbai"
     assert by_name["IIM Calcutta"]["city"] == "Kolkata"
     assert by_name["IIM Bangalore"]["city"] == "Bangalore"
+    assert by_name["IIM Lucknow"]["city"] == "Lucknow"
 
 
 def test_college_missing_required_fields_is_skipped_with_warning() -> None:
@@ -76,9 +70,11 @@ def test_college_missing_required_fields_is_skipped_with_warning() -> None:
     assert "IIM Ahmedabad" not in names
     assert "IIM Calcutta" not in names
     assert "IIM Bangalore" not in names
+    assert "IIM Lucknow" not in names
     assert any("iima" in w for w in response.get("warnings", []))
     assert any("iimc" in w for w in response.get("warnings", []))
     assert any("iimb" in w for w in response.get("warnings", []))
+    assert any("iiml" in w for w in response.get("warnings", []))
     assert "IIM Mumbai" in names
 
 

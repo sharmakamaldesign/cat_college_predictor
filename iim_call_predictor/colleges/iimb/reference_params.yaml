@@ -15,12 +15,10 @@
 # 2. IIM Bangalore states "a certain number of candidates from each
 #    category are selected for [Stage II]" based on the pre-PI score, but
 #    does not publish the composite cut-off used. `pre_pi_call_cutoff`
-#    defaults to 0 for every category below, i.e. NO additional bar beyond
-#    Stage I is applied by default — call == "meets Stage I (incl. strictly
-#    positive section raw scores)". This almost certainly OVER-predicts
-#    calls. Replace these with real historical/estimated pre-PI cut-offs
-#    once you have them (the same way IIMM's and IIMC's estimates were
-#    supplied).
+#    below is an EXTERNALLY ESTIMATED, user-supplied set of per-category
+#    cut-offs, not published by IIM Bangalore. Replace these with real
+#    historical/estimated pre-PI cut-offs whenever better figures are
+#    available.
 # ============================================================================
 
 mode: reference

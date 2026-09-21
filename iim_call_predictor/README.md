@@ -1,7 +1,7 @@
 # iim_call_predictor
 
 Predicts IIM shortlisting calls from a candidate's academics and CAT
-percentiles. Currently implements four colleges:
+percentiles. Currently implements five colleges:
 
 - **IIM Ahmedabad** (PGP 2027-29, CAT-2026) — full score calculation (AR /
   NCS) + CAT cutoff check + call prediction.
@@ -14,6 +14,10 @@ percentiles. Currently implements four colleges:
   cutoff check (incl. strictly positive section raw scores) + a pre-PI
   composite-score call prediction (CAT + board scores + work-ex + gender
   diversity — see below).
+- **IIM Lucknow** (MBA Entrepreneurship & Innovation 2024-26, CAT-2023) —
+  eligibility + CAT percentile cutoff check + a Stage 1b composite-score
+  call prediction (CAT + Class 12 + graduation + work-ex + gender
+  diversity — see below). CAT track only (GMAT not supported).
 
 Every college's output includes a `call` (`true`/`false`) field, but this is
 always a **fixed-threshold rule**, never a probability/ML prediction. The
@@ -45,8 +49,9 @@ predict_all_colleges({
   "data": {
     "eligible_colleges": [
       {"college_name": "IIM Ahmedabad", "city": "Ahmedabad", "predicted_call_probability": "High", "recommendation": "Safe"},
-      {"college_name": "IIM Bangalore", "city": "Bangalore", "predicted_call_probability": "Medium", "recommendation": "Moderate"},
+      {"college_name": "IIM Bangalore", "city": "Bangalore", "predicted_call_probability": "High", "recommendation": "Safe"},
       {"college_name": "IIM Calcutta", "city": "Kolkata", "predicted_call_probability": "High", "recommendation": "Safe"},
+      {"college_name": "IIM Lucknow", "city": "Lucknow", "predicted_call_probability": "High", "recommendation": "Safe"},
       {"college_name": "IIM Mumbai", "city": "Mumbai", "predicted_call_probability": "High", "recommendation": "Safe"}
     ]
   }
@@ -55,7 +60,7 @@ predict_all_colleges({
 
 Notes on this aggregated view:
 - A college is **left out of `eligible_colleges`** if the candidate doesn't meet its basic eligibility (e.g. UG% too low) — there's no point predicting a call for a college they can't apply to. A college whose model needs fields the payload doesn't supply (e.g. calling IIMM-only fields against IIMA, or omitting IIMC/IIMB's CAT raw scores) is **skipped and noted under a top-level `warnings` list**, rather than erroring out.
-- `predicted_call_probability` / `recommendation` (`High`/`Medium`/`Low` and `Safe`/`Moderate`/`Risky`) are a **deterministic bucketing** of each college's own call decision and how comfortably the candidate clears its threshold internally (≥2% margin → High/Safe, positive but <2% → Medium/Moderate, below threshold → Low/Risky; the raw threshold itself isn't exposed in the response, since it's on a different scale per college — IIMA: NCS ~0-1, IIMM: CAT overall percentile, IIMC/IIMB: composite score ~0-85/~0-100 — and so isn't meaningful to compare across colleges). A call of `true` against a threshold that hasn't been tuned yet (e.g. IIM Bangalore's `pre_pi_call_cutoff`, which still defaults to 0 for every category) also reads `Medium`/`Moderate`, since no real margin can be assessed — never a probability/ML model, just a labeled version of the same fixed-threshold logic.
+- `predicted_call_probability` / `recommendation` (`High`/`Medium`/`Low` and `Safe`/`Moderate`/`Risky`) are a **deterministic bucketing** of each college's own call decision and how comfortably the candidate clears its threshold internally (≥2% margin → High/Safe, positive but <2% → Medium/Moderate, below threshold → Low/Risky; the raw threshold itself isn't exposed in the response, since it's on a different scale per college — IIMA: NCS ~0-1, IIMM: CAT overall percentile, IIMC/IIMB/IIML: composite score ~0-85/~0-100 — and so isn't meaningful to compare across colleges). A call of `true` against a threshold that hasn't been tuned yet also reads `Medium`/`Moderate`, since no real margin can be assessed — never a probability/ML model, just a labeled version of the same fixed-threshold logic.
 - On invalid candidate input, the response is `{"success": false, "message": "...", "data": null}` instead.
 
 Via the CLI (drop `--college` to check every college at once):
@@ -237,13 +242,13 @@ experience is **not** approximated — it uses the exact published formula
 
 **The pre-PI composite cutoff** used to call candidates for Stage II is
 not published ("a certain number of candidates from each category are
-selected"), so
+selected"), so `call` uses an **externally estimated, user-supplied
+per-category cutoff** from
 [`colleges/iimb/reference_params.yaml`](colleges/iimb/reference_params.yaml)
-(`pre_pi_call_cutoff`) defaults to **0 for every category** — i.e. out of
-the box, `call == "meets Stage I"`, which likely **over-predicts** calls
-(same starting point IIMM/IIMC used before better figures were supplied).
-Edit that file with real historical/estimated pre-PI cutoffs once
-available; only `reference` mode is supported (no `pool` mode).
+(`pre_pi_call_cutoff`): GENERAL 52.5, EWS 42.0, NC-OBC 43.5, SC 37.5,
+ST 28.5, PWD 30.0 — not published by IIM Bangalore. Edit that file to tune
+these as better figures become available; only `reference` mode is
+supported (no `pool` mode).
 
 This document (2026-28 cycle) is explicitly used as-is for the 2027 (CAT-2026)
 cycle too, per your instruction — IIM Bangalore's own disclaimer notes it
@@ -259,6 +264,48 @@ Required: `ug_pct`, `category`, `cat_overall_percentile`,
 `category`. Candidates whose only qualification is a completed
 CA/CS/ICWA/FIAI professional degree (no bachelor's) should supply their
 professional-course aggregate percentage as `ug_pct`.
+
+## IIM Lucknow
+
+IIM Lucknow's MBA (Entrepreneurship & Innovation) programme also accepts a
+valid **GMAT** score as an alternative to CAT — **only the CAT track is
+implemented**; this tool has no GMAT input fields. Like IIMC/IIMB, the
+Stage 1b composite **is** what determines the PI/Business-Plan call: CAT
+(45) + Class 12 (20) + Graduation (25) + work experience (5, exact
+published formula: `min{(months-6)*0.5, 5}` for `months > 6`) +
+gender-diversity bonus (5, **Female only** — this policy's own wording is
+narrower than the other colleges here, which also credit "Other"). Stage 2
+(Business Plan 40% + Interview 60%, 18/60 interview pass mark) determines
+**final selection**, after the PI, and is out of scope.
+
+**Two Stage 1b components rely on unpublished applicant-pool statistics**
+and are approximated:
+- CAT term: officially `(candidate's score / highest CAT score in the
+  pool) * 45`, approximated as `(cat_overall_percentile / 100) * 45`.
+- Class 12 (12M): officially based on the candidate's Class 12 *percentile
+  within the applicant pool* (by board and discipline) — not their raw
+  percentage — via `[{max(P,80)-80}/20] * 20`. Approximated by treating
+  the raw `twelfth_pct` as if it were already that pool percentile:
+  `clamp(twelfth_pct - 80, 0, 20)`.
+- Graduation (GM): officially a population z-score by academic discipline;
+  approximated as `(ug_pct / 100) * 25`, ignoring the discipline split.
+
+**The Stage 1b composite cutoff** is not published, so `call` uses an
+**externally estimated, user-supplied per-category cutoff** from
+[`colleges/iiml/reference_params.yaml`](colleges/iiml/reference_params.yaml)
+(`pre_pi_call_cutoff`): GENERAL 52, EWS 39, NC-OBC 37.5, SC 30, ST 21.5,
+PWD 12 (the source explicitly flags the PWD figure as low-confidence) —
+not published by IIM Lucknow. Edit that file to tune these; only
+`reference` mode is supported (no `pool` mode).
+
+### Candidate input (IIML)
+
+Required: `ug_pct`, `category`, `cat_overall_percentile`,
+`cat_varc_percentile`, `cat_dilr_percentile`, `cat_qa_percentile`,
+`twelfth_pct`, `work_ex_months`, `gender`. Note: `tenth_pct` is **not**
+needed — unlike every other college here, IIML's composite has no 10th-board
+component. Optional: `pwd` (defaults to `false`) — when `true`, the PWD
+cutoff row is used regardless of `category`.
 
 ## Install
 
@@ -276,6 +323,7 @@ python -m iim_call_predictor.cli --college iima --input candidate.example.json
 python -m iim_call_predictor.cli --college iimm --input candidate.iimm.example.json
 python -m iim_call_predictor.cli --college iimc --input candidate.iimc.example.json
 python -m iim_call_predictor.cli --college iimb --input candidate.iimb.example.json
+python -m iim_call_predictor.cli --college iiml --input candidate.iiml.example.json
 ```
 
 JSON output:
@@ -329,6 +377,10 @@ iim_call_predictor/
       config.yaml            # official IIMB eligibility + Stage I table + pre-PI weights
       reference_params.yaml  # ASSUMPTION pre-PI composite call-cutoff parameters
       model.py                # IIMBModel(CollegeModel)
+    iiml/
+      config.yaml            # official IIML eligibility + Stage 1a table + Stage 1b weights
+      reference_params.yaml  # ASSUMPTION Stage 1b composite call-cutoff parameters
+      model.py                # IIMLModel(CollegeModel)
   predictor.py    # predict_all_colleges(candidate_data) — checks every registered college at once
   lambda_handler.py  # AWS Lambda entry point (auth + delegates to predictor)
   cli.py
@@ -337,6 +389,7 @@ iim_call_predictor/
     test_iimm.py
     test_iimc.py
     test_iimb.py
+    test_iiml.py
     test_predictor.py
     test_lambda_handler.py
 ```

@@ -1,0 +1,75 @@
+# IIM Lucknow admission-policy configuration — MBA (Entrepreneurship &
+# Innovation), Batch 2024-26, CAT-2023.
+#
+# Scope note: this predictor only checks eligibility and predicts the call
+# for Stage 2 (Personal Interview + Business Plan presentation). Stage 2's
+# own composite (Business Plan 40% + Interview 60%, with an 18/60 pass mark
+# on the interview) determines FINAL SELECTION, after the PI — out of scope
+# here, and not implemented.
+#
+# CAT-only: IIM Lucknow also accepts a valid GMAT score (taken after
+# 1 Jan 2022) as an alternative to CAT. This tool has no GMAT input fields
+# and only implements the CAT track; a GMAT-only applicant isn't supported.
+#
+# All numbers below are taken from IIM Lucknow's published Admission Policy
+# for Batch 2024-26 (Tables 1-2 and the eligibility section). The document
+# doesn't restate a specific eligibility percentage, only that it follows
+# "the requirements of eligibility of [CAT] conducted by IIMs" — CAT's own
+# published eligibility criteria is the standard 50%/45% baseline used
+# elsewhere in this project, so that is what's used here too.
+
+college:
+  name: "IIM Lucknow"
+  code: "iiml"
+  city: "Lucknow"
+  batch: "MBA (Entrepreneurship & Innovation) 2024-26"
+  exam: "CAT-2023"
+
+eligibility:
+  min_ug_pct:
+    default: 50
+    relaxed: 45
+    relaxed_categories: ["SC", "ST"]
+    relaxed_for_pwd: true
+
+categories: ["GENERAL", "EWS", "NC_OBC", "SC", "ST"]
+
+# --- Stage 1a: Table 1 — minimum CAT percentile requirements (official,
+# CAT columns only; GMAT columns not implemented — see scope note above).
+# Candidate must meet Overall AND all three sectional percentiles. A PwD
+# candidate uses the PWD row regardless of their reservation category.
+stage1_cutoffs:
+  GENERAL: {varc: 85, dilr: 85, qa: 85, overall: 90}
+  EWS:     {varc: 77, dilr: 77, qa: 77, overall: 82}
+  NC_OBC:  {varc: 77, dilr: 77, qa: 77, overall: 82}
+  SC:      {varc: 55, dilr: 55, qa: 55, overall: 65}
+  ST:      {varc: 50, dilr: 50, qa: 50, overall: 60}
+  PWD:     {varc: 50, dilr: 50, qa: 50, overall: 60}
+
+# --- Stage 1b: Table 2 — composite score weights (official) used to
+# shortlist for the PI/Business-Plan stage, out of a maximum of 100.
+#
+# Two components (cat_score_weight, twelfth_weight, bachelor_weight) are
+# officially computed against unpublished pool statistics (the highest
+# CAT/GMAT score in the applicant pool; the candidate's Class 12 percentile
+# WITHIN the applicant pool per board+discipline; and per-discipline
+# graduation-score population mean/SD). This tool does not collect a
+# candidate pool by default, so each is approximated instead — see
+# reference_params.yaml and the warnings this predictor emits. Work
+# experience and the gender-diversity bonus use their exact published
+# formulas (no approximation needed).
+composite_weights:
+  cat_score_weight: 45
+  twelfth_weight: 20
+  bachelor_weight: 25
+  work_experience_weight: 5
+  gender_diversity_points: 5   # awarded to Female candidates only — the policy's own wording is
+                                 # "IF (Gender = Female)", narrower than the other IIMs in this
+                                 # project (which also credit "Other"/transgender candidates).
+
+# Work-experience score is NOT approximated — it's an exact, published
+# formula: WE = min{(months - threshold_months) * per_month_rate, weight}
+# for months > threshold_months, else 0.
+work_experience:
+  threshold_months: 6
+  per_month_rate: 0.50

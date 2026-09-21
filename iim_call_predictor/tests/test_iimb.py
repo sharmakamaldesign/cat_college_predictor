@@ -249,15 +249,42 @@ def test_missing_composite_fields_raises_clear_error(model: IIMBModel) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Call prediction: eligible + Stage I passed + pre-PI composite >= call
-# cutoff (defaults to 0 for every category in reference mode, i.e. call ==
-# Stage I, until real figures are supplied)
+# Call prediction: eligible + Stage I passed + pre-PI composite >= the
+# externally estimated, user-supplied per-category call cutoff
 # ---------------------------------------------------------------------------
 
 
-def test_call_cutoff_defaults_to_zero(model: IIMBModel) -> None:
+def test_call_cutoff_values(model: IIMBModel) -> None:
     params = model.load_reference_params()
-    assert all(v == 0 for v in params["pre_pi_call_cutoff"].values())
+    cutoffs = params["pre_pi_call_cutoff"]
+    assert cutoffs["GENERAL"] == pytest.approx(52.5)
+    assert cutoffs["EWS"] == pytest.approx(42.0)
+    assert cutoffs["NC_OBC"] == pytest.approx(43.5)
+    assert cutoffs["SC"] == pytest.approx(37.5)
+    assert cutoffs["ST"] == pytest.approx(28.5)
+    assert cutoffs["PWD"] == pytest.approx(30.0)
+
+
+@pytest.mark.parametrize(
+    "category,threshold",
+    [
+        ("GENERAL", 52.5),
+        ("EWS", 42.0),
+        ("NC_OBC", 43.5),
+        ("SC", 37.5),
+        ("ST", 28.5),
+    ],
+)
+def test_predict_call_at_and_below_threshold(model: IIMBModel, category: str, threshold: float) -> None:
+    candidate = CandidateInput(**base_candidate_kwargs(category=category))
+    params = model.load_reference_params()
+
+    call, reasons, used = model._predict_call(True, True, threshold, candidate, params)
+    assert call is True, reasons
+    assert used == pytest.approx(threshold)
+
+    call, reasons, _ = model._predict_call(True, True, threshold - 0.01, candidate, params)
+    assert call is False, reasons
 
 
 def test_call_true_when_eligible_and_stage1_passed(model: IIMBModel) -> None:

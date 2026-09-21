@@ -1,0 +1,36 @@
+# ============================================================================
+# ASSUMPTION - NOT OFFICIAL. Two kinds of gaps in IIM Lucknow's published
+# policy are filled here:
+#
+# 1. Three Stage 1b components are officially computed against unpublished
+#    pool statistics:
+#      - Scaled CAT score (CS): officially (candidate's score / highest CAT
+#        score in the 2023 applicant pool) * 45. Approximated here as
+#        (cat_overall_percentile / 100) * 45.
+#      - HSC/Class 12 marks (12M): officially based on the candidate's
+#        Class 12 percentile WITHIN the applicant pool (by board and
+#        discipline), not their raw percentage. Approximated here by
+#        treating the raw twelfth_pct as if it were already that pool
+#        percentile: 12M = clamp(twelfth_pct - 80, 0, 20).
+#      - Graduation marks (GM): officially a z-score against the applicant
+#        pool's mean/SD, by academic discipline. Approximated here as
+#        (ug_pct / 100) * 25, ignoring the discipline breakdown.
+#    Treat these as rough proxies, not the official calculations.
+#
+# 2. IIM Lucknow does not publish the Stage 1b composite cut-off used to
+#    call candidates for the PI/Business-Plan stage. The values below are
+#    an EXTERNALLY ESTIMATED, user-supplied set of per-category cut-offs
+#    for the MBA (flagship-equivalent) programme, not published by IIM
+#    Lucknow. The PWD figure is explicitly noted by the source as
+#    low-confidence.
+# ============================================================================
+
+mode: reference
+
+pre_pi_call_cutoff:
+  GENERAL: 52
+  EWS: 39
+  NC_OBC: 37.5
+  SC: 30
+  ST: 21.5
+  PWD: 12   # low-confidence estimate

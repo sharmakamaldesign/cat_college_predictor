@@ -192,9 +192,8 @@ class IIMBModel(CollegeModel):
             "require whole-applicant-pool context this single-candidate tool doesn't have, and are not "
             "implemented.",
             "IIM Bangalore does not publish the pre-PI composite cut-off used to call candidates for "
-            "Stage II. pre_pi_call_cutoff (reference_params.yaml) defaults to 0 for every category as an "
-            "ASSUMPTION, i.e. by default 'call' == 'meets Stage I'; this likely OVER-predicts calls until "
-            "real figures are supplied.",
+            "Stage II. The threshold used here (reference_params.yaml -> pre_pi_call_cutoff) is an "
+            "externally estimated, user-supplied figure per category, not published by IIM Bangalore.",
         ]
         if not cutoff_passed:
             warnings.append(
