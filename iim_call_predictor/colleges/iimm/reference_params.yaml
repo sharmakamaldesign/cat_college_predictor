@@ -1,0 +1,34 @@
+# ============================================================================
+# ASSUMPTION - NOT OFFICIAL. IIM Mumbai's Admission Policy publishes only the
+# Stage I MINIMUM CAT-2025 percentile requirements (see config.yaml,
+# stage1_cutoffs) and states plainly that the actual Stage II (Personal
+# Interview) shortlisting cut-offs are usually HIGHER and depend on how many
+# candidates are called per category that year — a number IIM Mumbai does
+# not publish in advance.
+#
+# Since the policy states the APWE (academic + work-ex) score is used only
+# in Stage III, AFTER the PI, for final selection — not for the PI call
+# itself — the "call" prediction here is a CAT-2025 overall-percentile-only
+# rule, using externally estimated ranges (not published by IIM Mumbai).
+#
+# `call_overall_percentile_range` gives, per category, the estimated
+# [low, high] overall percentile band at which a PI call has historically
+# come through. The midpoint of that range is used as the single go/no-go
+# threshold for the "call" prediction. Replace these with real
+# historical/estimated figures as better data becomes available.
+# ============================================================================
+
+mode: reference
+
+call_overall_percentile_range:
+  GENERAL: {low: 97, high: 98}
+  EWS:     {low: 90, high: 91}
+  NC_OBC:  {low: 92, high: 93}
+  SC:      {low: 80, high: 81}
+  ST:      {low: 68, high: 69}
+
+# No updated overall-percentile estimate has been supplied for PwD
+# candidates yet, so they fall back to this sectional check (defaulting to
+# the Stage I PWD minimums from config.yaml) until a real estimate is known.
+call_cutoff:
+  PWD: {varc: 45, dilr: 45, qa: 45, overall: 55}

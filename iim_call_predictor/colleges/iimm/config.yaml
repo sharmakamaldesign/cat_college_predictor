@@ -1,0 +1,47 @@
+# IIM Mumbai admission-policy configuration — MBA Batch 2026-2028, CAT-2025.
+#
+# Scope note: this predictor only checks eligibility and predicts a Stage II
+# (Personal Interview) CALL. IIM Mumbai's policy explicitly uses the
+# Academic Performance & Work Experience (APWE) score and the PI score only
+# for Stage III final selection, AFTER the PI — those are out of scope here
+# and are not implemented.
+#
+# All numbers below are taken from IIM Mumbai's published Admission Policy
+# for Batch 2026-2028 (Table 1 and the eligibility section).
+
+college:
+  name: "IIM Mumbai"
+  code: "iimm"
+  batch: "MBA 2026-2028"
+  exam: "CAT-2025"
+
+# --- Eligibility: bachelor's degree with minimum marks ---
+eligibility:
+  min_ug_pct:
+    default: 50
+    relaxed: 45
+    relaxed_categories: ["SC", "ST"]
+    relaxed_for_pwd: true
+
+# "GENERAL" here represents the policy's "OPEN" category (no separate
+# reservation). NC_OBC/EWS/SC/ST match the policy's category names directly.
+categories: ["GENERAL", "EWS", "NC_OBC", "SC", "ST"]
+
+# --- Stage I: Table 1 — minimum CAT-2025 percentile requirements (official) ---
+# Candidate must meet Overall AND all three sectional (VARC, DILR, QA)
+# percentiles to be considered further. A PwD candidate uses the PWD row
+# regardless of their reservation category (per the policy's own Table 1,
+# which lists PwD as a distinct row).
+#
+# The policy explicitly states: "the actual section-wise and overall
+# percentile cut-offs may be much higher than the above-mentioned minimum
+# percentiles as it will depend upon the number of candidates to be called
+# for personal interview (PI) in each category." I.e. these are necessary
+# but not sufficient for an actual PI call — see reference_params.yaml.
+stage1_cutoffs:
+  GENERAL: {varc: 80, dilr: 80, qa: 75, overall: 85}
+  NC_OBC:  {varc: 70, dilr: 65, qa: 65, overall: 75}
+  EWS:     {varc: 70, dilr: 65, qa: 65, overall: 75}
+  SC:      {varc: 65, dilr: 60, qa: 60, overall: 70}
+  ST:      {varc: 55, dilr: 55, qa: 55, overall: 65}
+  PWD:     {varc: 45, dilr: 45, qa: 45, overall: 55}

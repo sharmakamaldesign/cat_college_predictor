@@ -5,3 +5,4 @@ To add a new IIM: create a new subpackage here and import it below so its
 """
 
 from . import iima  # noqa: F401  (import triggers registration)
+from . import iimm  # noqa: F401  (import triggers registration)

@@ -82,17 +82,18 @@ def _print_breakdown(college_name: str, result) -> None:  # noqa: ANN001
         print(f"  - {reason}")
     print()
 
-    print("Rating scores:")
-    for key in ("A", "B", "C", "D", "E"):
-        print(f"  {key} = {result.rating_scores[key]}")
-    print(f"  Raw AR (A+B+C+D+E) = {result.raw_ar}")
-    print()
+    if result.raw_ar is not None:
+        print("Rating scores:")
+        for key in ("A", "B", "C", "D", "E"):
+            print(f"  {key} = {result.rating_scores[key]}")
+        print(f"  Raw AR (A+B+C+D+E) = {result.raw_ar}")
+        print()
 
-    print(f"Normalized AR = {result.normalized_ar:.6f}")
-    print(f"Raw composite = {result.raw_composite:.6f}")
-    print(f"Discipline used = {result.discipline_used}")
-    print(f"NCS (Normalized Composite Score) = {result.ncs:.6f}")
-    print()
+        print(f"Normalized AR = {result.normalized_ar:.6f}")
+        print(f"Raw composite = {result.raw_composite:.6f}")
+        print(f"Discipline used = {result.discipline_used}")
+        print(f"NCS (Normalized Composite Score) = {result.ncs:.6f}")
+        print()
 
     print(f"Call: {'TRUE' if result.call else 'FALSE'}")
     for reason in result.call_reasons:

@@ -189,6 +189,13 @@ class IIMAModel(CollegeModel):
                 f"Unknown UG discipline '{discipline}'. Must be one of: {', '.join(allowed)}."
             )
 
+    def _require_present(self, candidate: CandidateInput, *field_names: str) -> None:
+        missing = [name for name in field_names if getattr(candidate, name) is None]
+        if missing:
+            raise ValueError(
+                f"{self.config['college']['name']} scoring requires the following fields: {', '.join(missing)}."
+            )
+
     def _predict_call(
         self,
         candidate: CandidateInput,
@@ -235,6 +242,8 @@ class IIMAModel(CollegeModel):
         params: Optional[Dict[str, Any]] = None,
         mode: str = "reference",
     ) -> ScoreResult:
+        self._require_present(candidate, "tenth_pct", "twelfth_pct", "work_ex_months", "gender", "ug_discipline")
+
         if params is None:
             params = self.load_reference_params()
             mode = "reference"
