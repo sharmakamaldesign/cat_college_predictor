@@ -8,7 +8,10 @@ combined response.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Dict, List
+
+from pydantic import ValidationError
 
 from . import colleges  # noqa: F401  (import triggers registration of all colleges)
 from .core.models import CandidateInput
@@ -17,6 +20,15 @@ from .core.utils import call_probability_tier
 
 _PROBABILITY_LABELS = {"high": "High", "medium": "Medium", "low": "Low"}
 _RECOMMENDATION_LABELS = {"high": "Safe", "medium": "Moderate", "low": "Risky"}
+
+MODEL_VERSION = "bytlbs_cat_clg_v1"
+
+
+def _meta() -> Dict[str, str]:
+    return {
+        "model_used": MODEL_VERSION,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+    }
 
 
 def predict_all_colleges(candidate_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -36,7 +48,8 @@ def predict_all_colleges(candidate_data: Dict[str, Any]) -> Dict[str, Any]:
                 },
                 ...
             ]} | None,
-            "warnings": [str, ...],   # only present if non-empty
+            "warnings": [str, ...],   # always present on success; [] when there's nothing to report
+            "meta": {"model_used": str, "generated_at": str},  # always present, incl. on failure
         }
 
     A college is left out of ``eligible_colleges`` when the candidate does
@@ -51,11 +64,19 @@ def predict_all_colleges(candidate_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     try:
         candidate = CandidateInput(**candidate_data)
-    except Exception as exc:  # pydantic.ValidationError, primarily
+    except ValidationError as exc:
+        return {
+            "success": False,
+            "message": f"Invalid candidate input: {_format_validation_error(exc)}",
+            "data": None,
+            "meta": _meta(),
+        }
+    except Exception as exc:
         return {
             "success": False,
             "message": f"Invalid candidate input: {exc}",
             "data": None,
+            "meta": _meta(),
         }
 
     eligible_colleges: List[Dict[str, Any]] = []
@@ -86,11 +107,33 @@ def predict_all_colleges(candidate_data: Dict[str, Any]) -> Dict[str, Any]:
             }
         )
 
-    response: Dict[str, Any] = {
+    return {
         "success": True,
         "message": "Prediction generated successfully.",
         "data": {"eligible_colleges": eligible_colleges},
+        "warnings": warnings,
+        "meta": _meta(),
     }
-    if warnings:
-        response["warnings"] = warnings
-    return response
+
+
+def _format_validation_error(exc: ValidationError) -> str:
+    """Turn pydantic's verbose ValidationError into a short, plain-English message,
+    e.g. "cat_overall_percentile is a required field." instead of the full dump."""
+    missing: List[str] = []
+    invalid: List[str] = []
+    for err in exc.errors():
+        field = ".".join(str(part) for part in err["loc"]) or "input"
+        if err["type"] == "missing":
+            missing.append(field)
+        else:
+            invalid.append(f"{field} ({err['msg']})")
+
+    parts: List[str] = []
+    if missing:
+        if len(missing) == 1:
+            parts.append(f"{missing[0]} is a required field")
+        else:
+            parts.append(f"{', '.join(missing)} are required fields")
+    if invalid:
+        parts.append(f"invalid value for {', '.join(invalid)}")
+    return "; ".join(parts) + "." if parts else str(exc)
